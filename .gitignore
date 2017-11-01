@@ -142,3 +142,4 @@ Temporary Items
 
 # Selenium
 geckodriver.log
+db.sqlite3
