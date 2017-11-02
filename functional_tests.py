@@ -6,7 +6,7 @@ from selenium.webdriver.common.keys import Keys
 class NewVisitorTest(unittest.TestCase):
 
     def setUp(self):
-        self.browser = webdriver.Firefox()
+        self.browser = webdriver.Chrome()
 
     def tearDown(self):
         self.browser.quit()
@@ -21,7 +21,6 @@ class NewVisitorTest(unittest.TestCase):
 
         # Hemen bir To-do item'ı eklemeye davet edilir.
         inputbox = self.browser.find_element_by_id('id_new_item')
-        # self.browser.find_element_by_id('id_new_item').send_keys('sdf')
 
         self.assertEqual(inputbox.get_attribute('placeholder'), 'Enter a to-do item')
 
@@ -31,20 +30,21 @@ class NewVisitorTest(unittest.TestCase):
         # Enter'a bastığında sayfa yenilenir, ve sayfada
         # "1: Baget satın al" maddesini görünür.
         inputbox.send_keys(Keys.ENTER)
-        print(type(inputbox))
-
-
         table = self.browser.find_element_by_id('id_list_table')
         rows = table.find_elements_by_tag_name('tr')
-        self.assertTrue(
-                        any(row.text == '1: Baget satın al' for row in rows)
-        )
+        self.assertIn('1: Baget satın al', [row.text for row in rows])
 
-        self.fail('Finish the test!')
 
         # Sayfada hala yeni item ekleme text box'ı bulunur. Buraya "Studyodan zaman kirala" yazar.
+        inputbox = self.browser.find_element_by_id('id_new_item')
+        inputbox.send_keys('Studyodan zaman kirala')
+        inputbox.send_keys(Keys.ENTER)
 
         # Sayda yeniden yüklenir. ve iki item'da sayfada listelenir.
+        table = self.browser.find_element_by_id('id_list_table')
+        rows = table.find_elements_by_tag_name('tr')
+        self.assertIn('1: Baget satın al', [row.text for row in rows])
+        self.assertIn('2: Studyodan zaman kirala ', [row.text for row in rows])
 
         # Sayfadan çıkıp girdiğinde bu listenin korunup korunmayacağını merak eder. Sayfa kendisine bu iş için
         # ürettiği url'i görür.
@@ -52,6 +52,9 @@ class NewVisitorTest(unittest.TestCase):
         # bu URL'i ziyaret eder, ve listesinin hala durduğunu görür.
 
         # Bu iş tamamdır.
+
+
+        self.fail('Finish the test!')
 
 if __name__ == '__main__':
    unittest.main()
