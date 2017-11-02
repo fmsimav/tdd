@@ -11,6 +11,11 @@ class NewVisitorTest(unittest.TestCase):
     def tearDown(self):
         self.browser.quit()
 
+    def check_for_row_in_list_table(self, row_text):
+            table = self.browser.find_element_by_id('id_list_table')
+            rows = table.find_elements_by_tag_name('tr')
+            self.assertIn(row_text, [row.text for row in rows])
+
     def test_can_start_a_list_and_retrieve_it_later(self):
 
         # Murat yeni bir to-do uygulaması görür. Anasayfasına gidip siteyi kontrol etmek eder.
@@ -30,10 +35,7 @@ class NewVisitorTest(unittest.TestCase):
         # Enter'a bastığında sayfa yenilenir, ve sayfada
         # "1: Baget satın al" maddesini görünür.
         inputbox.send_keys(Keys.ENTER)
-        table = self.browser.find_element_by_id('id_list_table')
-        rows = table.find_elements_by_tag_name('tr')
-        self.assertIn('1: Baget satın al', [row.text for row in rows])
-
+        self.check_for_row_in_list_table('1: Baget satın al')
 
         # Sayfada hala yeni item ekleme text box'ı bulunur. Buraya "Studyodan zaman kirala" yazar.
         inputbox = self.browser.find_element_by_id('id_new_item')
@@ -41,10 +43,8 @@ class NewVisitorTest(unittest.TestCase):
         inputbox.send_keys(Keys.ENTER)
 
         # Sayda yeniden yüklenir. ve iki item'da sayfada listelenir.
-        table = self.browser.find_element_by_id('id_list_table')
-        rows = table.find_elements_by_tag_name('tr')
-        self.assertIn('1: Baget satın al', [row.text for row in rows])
-        self.assertIn('2: Studyodan zaman kirala ', [row.text for row in rows])
+        self.check_for_row_in_list_table('1: Baget satın al')
+        self.check_for_row_in_list_table('2: Studyodan zaman kirala')
 
         # Sayfadan çıkıp girdiğinde bu listenin korunup korunmayacağını merak eder. Sayfa kendisine bu iş için
         # ürettiği url'i görür.
@@ -55,6 +55,9 @@ class NewVisitorTest(unittest.TestCase):
 
 
         self.fail('Finish the test!')
+
+
+
 
 if __name__ == '__main__':
    unittest.main()
