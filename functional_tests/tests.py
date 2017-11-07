@@ -3,6 +3,9 @@ from selenium import webdriver
 # import unittest
 import time
 from selenium.webdriver.common.keys import Keys
+from selenium .common.exceptions import WebDriverException
+
+MAX_WAIT = 5
 
 class NewVisitorTest(LiveServerTestCase):
 
@@ -12,10 +15,19 @@ class NewVisitorTest(LiveServerTestCase):
     def tearDown(self):
         self.browser.quit()
 
-    def check_for_row_in_list_table(self, row_text):
-            table = self.browser.find_element_by_id('id_list_table')
-            rows = table.find_elements_by_tag_name('tr')
-            self.assertIn(row_text, [row.text for row in rows])
+    def wait_for_row_in_list_table(self, row_text):
+        start_time = time.time()
+        while True:
+            try:
+                table = self.browser.find_element_by_id('id_list_table')
+                rows = table.find_elements_by_tag_name('tr')
+
+                self.assertIn(row_text, [row.text for row in rows])
+                return
+            except (AssertionError, WebDriverException) as e:
+                if time.time() - start_time > MAX_WAIT:
+                    raise e
+                time.sleep(0.5)
 
     def test_can_start_a_list_and_retrieve_it_later(self):
 
@@ -36,7 +48,7 @@ class NewVisitorTest(LiveServerTestCase):
         # Enter'a bastığında sayfa yenilenir, ve sayfada
         # "1: Baget satın al" maddesini görünür.
         inputbox.send_keys(Keys.ENTER)
-        self.check_for_row_in_list_table('1: Baget satın al')
+        self.wait_for_row_in_list_table('1: Baget satın al')
 
         # Sayfada hala yeni item ekleme text box'ı bulunur. Buraya "Studyodan zaman kirala" yazar.
         inputbox = self.browser.find_element_by_id('id_new_item')
@@ -44,15 +56,49 @@ class NewVisitorTest(LiveServerTestCase):
         inputbox.send_keys(Keys.ENTER)
 
         # Sayda yeniden yüklenir. ve iki item'da sayfada listelenir.
-        self.check_for_row_in_list_table('1: Baget satın al')
-        self.check_for_row_in_list_table('2: Studyodan zaman kirala')
+        self.wait_for_row_in_list_table('1: Baget satın al')
+        self.wait_for_row_in_list_table('2: Studyodan zaman kirala')
 
-        # Sayfadan çıkıp girdiğinde bu listenin korunup korunmayacağını merak eder. Sayfa kendisine bu iş için
-        # ürettiği url'i görür.
+    def test_multiple_users_can_start_lists_at_different_urls(self):
+        self.browser.get(self.live_server_url)
+        inputbox = self.browser.find_element_by_id('id_new_item')
+        inputbox.send_keys('Buy peacock feathers')
+        inputbox.send_keys(Keys.ENTER)
+        self.wait_for_row_in_list_table('1: Buy peacock feathers')
+        # Sayfadan çıkıp girdiğinde bu listenin korunup korunmayacağını merak eder. Sayfa kendisine bu iş için ürettiği url'i görür.
+
+        murat_list_url = self.browser.current_url
+        self.assertRegex(murat_list_url, '/lists/.+')
 
         # bu URL'i ziyaret eder, ve listesinin hala durduğunu görür.
 
+        ## sonra başka bir kullanıcı gelir.
+        ## cookie ve post datalardan kurtulmak için yeni bir tarayıcı session'ı başlatırak kontrol ediyoruz.
+
+        self.browser.quit()
+        self.browser = webdriver.Chrome()
+
+        # Ahmet siteye gelir, Murat'ın listesindeki bilgileri görmez.
+        self.browser.get(self.live_server_url)
+        page_text = self.browser.find_element_by_tag_name('body').text
+        self.assertNotIn('Buy peacock feathers', page_text)
+
+        # Ahmet yeni bir liste oluşturur.
+        inputbox = self.browser.find_element_by_id('id_new_item')
+        inputbox.send_keys('Buy milk')
+        input.send_keys(Keys.ENTER)
+        self.wait_for_row_in_list_table('1: Buy milk')
+
+        # Ahmet'e yeni bir URL oluştutulur
+        ahmet_list_url = self.browser.current_url
+        self.assertRegex('ahmet_list_url', '/lists/.+')
+        self.assertNotEqual(ahmet_list_url, murat_list_url)
+
+        # sayfada yine murat'ın listesinden madde görmez
+        page_text = self.broeser.find_element_by_tag_name('body').text
+        self.assertNotIn('Baget satın al', page_text)
+        self.assertIn('Buy milk', page_text)
+
         # Bu iş tamamdır.
 
-
-        self.fail('Finish the test!')
+        self.fail('TESTİ BİTİR!')
