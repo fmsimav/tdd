@@ -1,9 +1,10 @@
+from django.test import LiveServerTestCase
 from selenium import webdriver
-import unittest
+# import unittest
 import time
 from selenium.webdriver.common.keys import Keys
 
-class NewVisitorTest(unittest.TestCase):
+class NewVisitorTest(LiveServerTestCase):
 
     def setUp(self):
         self.browser = webdriver.Chrome()
@@ -19,7 +20,7 @@ class NewVisitorTest(unittest.TestCase):
     def test_can_start_a_list_and_retrieve_it_later(self):
 
         # Murat yeni bir to-do uygulaması görür. Anasayfasına gidip siteyi kontrol etmek eder.
-        self.browser.get('http://localhost:8000')
+        self.browser.get(self.live_server_url)
 
         # Sayfanın title'ının To-Do olduğunu görür
         self.assertIn('To-Do', self.browser.title)
@@ -55,9 +56,3 @@ class NewVisitorTest(unittest.TestCase):
 
 
         self.fail('Finish the test!')
-
-
-
-
-if __name__ == '__main__':
-   unittest.main()
