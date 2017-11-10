@@ -1,3 +1,4 @@
+import os
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
 # from django.test import LiveServerTestCase
 from selenium import webdriver
@@ -15,6 +16,9 @@ CHROME_DRIVER_PATH = '/Users/msimav/anaconda/envs/python/bin/chromedriver'
 class NewVisitorTest(StaticLiveServerTestCase):
 
     def setUp(self):
+        staging_server = os.environ.get('STAGING_SERVER')
+        if staging_server:
+            self.live_server_url = 'http://' + staging_server
         self.browser = webdriver.Chrome(CHROME_DRIVER_PATH)
 
     def tearDown(self):
