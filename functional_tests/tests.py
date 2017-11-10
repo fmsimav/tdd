@@ -5,7 +5,7 @@ import time
 from selenium.webdriver.common.keys import Keys
 from selenium .common.exceptions import WebDriverException
 
-MAX_WAIT = 1
+MAX_WAIT = 3
 DEBUG_WAIT_TIME = 0
 CHROME_DRIVER_PATH = '/Users/msimav/anaconda/envs/python/bin/chromedriver'
 
@@ -68,6 +68,18 @@ class NewVisitorTest(LiveServerTestCase):
     def test_can_start_a_list_for_one_user(self):
 
         # Edith has heard about a cool new online to-do app. She goes
+        self.browser.get(self.live_server_url)
+        inputbox = self.browser.find_element_by_id('id_new_item')
+
+        inputbox.send_keys('Buy peacock feathers')
+        time.sleep(DEBUG_WAIT_TIME)
+        inputbox.send_keys(Keys.ENTER)
+
+        inputbox = self.browser.find_element_by_id('id_new_item')
+        inputbox.send_keys('Use peacock feathers to make a fly')
+        time.sleep(DEBUG_WAIT_TIME)
+        inputbox.send_keys(Keys.ENTER)
+
         # The page updates again, and now shows both items on her list
         self.wait_for_row_in_list_table('2: Use peacock feathers to make a fly')
         self.wait_for_row_in_list_table('1: Buy peacock feathers')
@@ -86,7 +98,7 @@ class NewVisitorTest(LiveServerTestCase):
 
         murat_list_url = self.browser.current_url
         time.sleep(DEBUG_WAIT_TIME)
-        self.assertRegex(murat_list_url, '/lists/.+')
+        self.assertRegex(murat_list_url, '/lists/\d+/')
 
         # bu URL'i ziyaret eder, ve listesinin hala durduğunu görür.
 
@@ -114,7 +126,7 @@ class NewVisitorTest(LiveServerTestCase):
         # Ahmet'e yeni bir URL oluştutulur
         ahmet_list_url = self.browser.current_url
         time.sleep(DEBUG_WAIT_TIME)
-        self.assertRegex('ahmet_list_url', '/lists/.+')
+        self.assertRegex(ahmet_list_url, '/lists/\d+/')
         self.assertNotEqual(ahmet_list_url, murat_list_url)
 
         # sayfada yine murat'ın listesinden madde görmez
